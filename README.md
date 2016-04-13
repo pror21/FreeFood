@@ -1,2 +1,2 @@
 # freeFood
-A map with Food Stores and Restaurants that offers free food.
+A map with places that offers free food.
