@@ -13,28 +13,22 @@ import gr.teicm.icd.hackathon.services.CustomAccountDetailsService;
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+	@Autowired
+	private CustomAccountDetailsService customAccountDetailsService;
+	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http.authorizeRequests()
-				.antMatchers(
-						"/", 
-						"/register",
-						"/registerDone",
-						"/registerFailed",
-						"/css/**", 
-						"/js/**", 
-						"/img/**", 
-						"/fragments/**"
-						)
-				.permitAll().anyRequest().authenticated().and().formLogin().loginPage("/login").permitAll().and()
-				.logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).logoutSuccessUrl("/");
+		.antMatchers("/", "/register", "/registerDone",
+						"/registerFailed", "/css/**", "/js/**", "/img/**", "/fragments/**")
+				.permitAll().anyRequest().authenticated().and()
+				.formLogin().loginPage("/login").permitAll().and().logout()
+				.logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+				.logoutSuccessUrl("/");
 	}
 	
-	@Autowired
-    private CustomAccountDetailsService customAccountDetailsService;
-	
-	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-		auth.inMemoryAuthentication().withUser("user").password("password").roles("USER");
+	@Override
+	public void configure(AuthenticationManagerBuilder auth) throws Exception {
 		auth.userDetailsService(customAccountDetailsService);
 	}
 }
