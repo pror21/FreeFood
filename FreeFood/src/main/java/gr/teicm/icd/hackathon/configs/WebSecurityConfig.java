@@ -18,8 +18,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		http.authorizeRequests()
 				.antMatchers(
 						"/", 
-						"/index", 
-						"/index.html", 
 						"/register",
 						"registerDone",
 						"registerFailed",
