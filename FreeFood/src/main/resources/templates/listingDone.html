@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
+<head>
+<meta charset="utf-8" />
+<title>FreeFood: Donation Point Listed</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<link rel="stylesheet" href="css/bootstrap.css" media="screen" />
+<link rel="stylesheet" href="css/custom.css" />
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" />
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+      <script src="../bower_components/html5shiv/dist/html5shiv.js"></script>
+      <script src="../bower_components/respond/dest/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+	<div th:replace="fragments/header"></div>
+	<div class="container">
+		<div class="well">
+			<div class="row">
+				<div class="col-md-2"></div>
+				<div class="col-md-8">
+					<div class="alert alert-success text-center" role="alert">
+						<i class="fa fa-check fa-4x" aria-hidden="true"></i>
+						<hr />
+						<h4>
+							<b>Well done!</b> You have successfully listed a food donation point.
+						</h4>
+
+					</div>
+					<div class="alert alert-warning text-center" role="alert">
+					<i class="fa fa-exclamation-triangle fa-3x" aria-hidden="true"></i>
+						<p>You will not be able to list another food donation till the
+							current one expire.</p>
+						<p>
+							You can always manage your current listing through the navigation
+							Account-><a class="alert-link" href="/listing">Listing</a>.
+						</p>
+					</div>
+				</div>
+				<div class="col-md-3"></div>
+			</div>
+		</div>
+		<div th:replace="fragments/footer"></div>
+	</div>
+
+	<script src="js/jquery-1.12.3.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/custom.js"></script>
+
+</body>
+</html>

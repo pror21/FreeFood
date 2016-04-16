@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
+<head>
+<meta charset="utf-8" />
+<title>FreeFood: Donation Listing Failed :(</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<link rel="stylesheet" href="css/bootstrap.css" media="screen" />
+<link rel="stylesheet" href="css/custom.css" />
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" />
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+      <script src="../bower_components/html5shiv/dist/html5shiv.js"></script>
+      <script src="../bower_components/respond/dest/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+
+	<div th:replace="fragments/header"></div>
+	<div class="container">
+		<div class="well">
+			<div class="row">
+				<div class="col-md-2"></div>
+				<div class="col-md-8">
+					<div class="alert alert-danger text-center" role="alert">
+						<i class="fa fa-ban fa-4x" aria-hidden="true"></i>
+						<hr />
+						<h5>
+							<b>Oops!</b> It seems you have listed already a food donation point.
+							<br/>
+							You can manage your current listing <a class="alert-link" href="/listing">here</a>.
+						</h5>
+					</div>
+				</div>
+				<div class="col-md-3"></div>
+			</div>
+		</div>
+		<div th:replace="fragments/footer"></div>
+	</div>
+
+	<script src="js/jquery-1.12.3.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/custom.js"></script>
+
+</body>
+</html>
