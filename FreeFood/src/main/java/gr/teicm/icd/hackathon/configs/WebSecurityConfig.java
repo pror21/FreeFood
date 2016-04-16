@@ -19,8 +19,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 				.antMatchers(
 						"/", 
 						"/register",
-						"registerDone",
-						"registerFailed",
+						"/registerDone",
+						"/registerFailed",
 						"/css/**", 
 						"/js/**", 
 						"/img/**", 
