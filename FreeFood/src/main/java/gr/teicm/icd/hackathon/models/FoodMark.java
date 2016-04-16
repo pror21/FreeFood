@@ -1,6 +1,7 @@
 package gr.teicm.icd.hackathon.models;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "foodmarks")
@@ -11,7 +12,7 @@ public class FoodMark {
 	}
 	
 	@Id private String id;
-	private Account acc;
+	@DBRef private Account acc;
 	private String food;
 	private String info;
 	private Time time;
