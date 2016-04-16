@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<title>FreeFood: Sign Up</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<link rel="stylesheet" href="css/bootstrap.css" media="screen" />
+<link rel="stylesheet" href="css/custom.css" />
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" />
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+      <script src="../bower_components/html5shiv/dist/html5shiv.js"></script>
+      <script src="../bower_components/respond/dest/respond.min.js"></script>
+    <![endif]-->
+<style>
+#map {
+	width: 100%;
+	height: 400px;
+}
+</style>
+</head>
+<body>
+
+	<div th:replace="fragments/header"></div>
+	<div class="container">
+		<br /> <br />
+		<div class="well">
+			<form class="form-horizontal" action="#" th:action="@{/register}"
+				th:object="${account}" method="post">
+				<fieldset>
+					<legend>Sign Up</legend>
+					<p class="text-success">Congratulation for willing to
+						contribute and make a better world! Please take a moment to fill
+						out the sign up form. :-)</p>
+					<br />
+					<div class="form-group">
+						<label for="inputUsername" class="col-lg-2 control-label">Username</label>
+						<div class="col-lg-10">
+							<input th:field="*{username}" class="form-control" id="username"
+								name="username" placeholder="Username" type="text" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="inputName" class="col-lg-2 control-label">Name</label>
+						<div class="col-lg-10">
+							<input th:field="*{name}" class="form-control" id="name"
+								name="name" placeholder="Name" type="text" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="inputEmail" class="col-lg-2 control-label">Email</label>
+						<div class="col-lg-10">
+							<input th:field="*{email}" class="form-control" id="email"
+								name="email" placeholder="Email" type="email" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="inputPassword" class="col-lg-2 control-label">Password</label>
+						<div class="col-lg-10">
+							<input th:field="*{password}" class="form-control" id="password"
+								name="password" placeholder="Password" type="password" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="textArea" class="col-lg-2 control-label">About
+							you</label>
+						<div class="col-lg-10">
+							<textarea th:field="*{about}" class="form-control" rows="3"
+								id="about" name="about"></textarea>
+							<span class="help-block">Tell us some words about who you
+								are and why you want to participate. <br />This summary will be
+								visible to everyone. Although it's not required to fill this
+								it's highly recommended.
+							</span>
+
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-lg-2 control-label">Type</label>
+						<div class="col-lg-10">
+							<div class="radio">
+								<label> <input th:checked="*{type}" id="type"
+									name="type" value="INDIVIDUAL" checked="checked" type="radio" /><i class="fa fa-user" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;Individual
+								</label>
+							</div>
+							<div class="radio">
+								<label> <input th:checked="*{type}" id="type"
+									name="type" value="STORE" type="radio" /><i class="fa fa-cutlery" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;Food Store/Restaurant
+								</label>
+							</div>
+							<div class="radio">
+								<label> <input th:checked="*{type}" id="type"
+									name="type" value="FOUNDATION" type="radio" /><i class="fa fa-life-ring" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;Foundation
+								</label>
+							</div>
+							<div class="radio">
+								<label> <input th:checked="*{type}" id="type"
+									name="type" value="OTHER" type="radio" /><i class="fa fa-building-o" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;Other Organization
+								</label>
+							</div>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<div class="col-lg-10">
+							<input th:field="*{latitude}" class="form-control" id="latitude" name="latitude"
+								type="hidden" />
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-lg-10">
+							<input th:field="*{longitude}" class="form-control" id="longitude" name="longitude"
+								type="hidden" />
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-md-2"></div>
+						<div class="col-md-10">
+							<div class="panel panel-primary">
+								<div class="panel-heading">
+									<h3 class="panel-title">Where people can find you?</h3>
+								</div>
+								<div class="panel-body">
+									<div class="input-group">
+										<input type="text" class="form-control" id="reg-input"
+											placeholder="Where people can find you?" /> <span
+											class="input-group-btn">
+											<button onclick="getLocation()" class="btn btn-info"
+												type="button">
+												<i class="fa fa-map-marker"></i>
+											</button>
+										</span>
+									</div>
+									<div id="map"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+
+					<div class="form-group">
+						<div class="col-lg-10 col-lg-offset-2">
+							<button type="reset" class="btn btn-default">Cancel</button>
+							<button type="submit" class="btn btn-primary">Submit</button>
+						</div>
+					</div>
+				</fieldset>
+			</form>
+		</div>
+
+		<div th:replace="fragments/footer"></div>
+	</div>
+
+	<script>
+		//<![CDATA[
+		var map = new google.maps.Map();
+		var userMarker = new google.maps.Marker();
+		var infowindow = new google.maps.InfoWindow();
+		var lat;
+		var lng;
+
+		function initMap() {
+			map = new google.maps.Map(document.getElementById('map'), {
+				center : new google.maps.LatLng(0, 0),
+				zoom : 2,
+				styles : [ {
+					"featureType" : "water",
+					"stylers" : [ {
+						"visibility" : "on"
+					}, {
+						"color" : "#b5cbe4"
+					} ]
+				}, {
+					"featureType" : "landscape",
+					"stylers" : [ {
+						"color" : "#efefef"
+					} ]
+				}, {
+					"featureType" : "road.highway",
+					"elementType" : "geometry",
+					"stylers" : [ {
+						"color" : "#83a5b0"
+					} ]
+				}, {
+					"featureType" : "road.arterial",
+					"elementType" : "geometry",
+					"stylers" : [ {
+						"color" : "#bdcdd3"
+					} ]
+				}, {
+					"featureType" : "road.local",
+					"elementType" : "geometry",
+					"stylers" : [ {
+						"color" : "#ffffff"
+					} ]
+				}, {
+					"featureType" : "poi.park",
+					"elementType" : "geometry",
+					"stylers" : [ {
+						"color" : "#e3eed3"
+					} ]
+				}, {
+					"featureType" : "administrative",
+					"stylers" : [ {
+						"visibility" : "on"
+					}, {
+						"lightness" : 33
+					} ]
+				}, {
+					"featureType" : "road"
+				}, {
+					"featureType" : "poi.park",
+					"elementType" : "labels",
+					"stylers" : [ {
+						"visibility" : "on"
+					}, {
+						"lightness" : 20
+					} ]
+				}, {}, {
+					"featureType" : "road",
+					"stylers" : [ {
+						"lightness" : 20
+					} ]
+				} ]
+
+			});
+			var input = /** @type {!HTMLInputElement} */
+			(document.getElementById('reg-input'));
+
+			var autocomplete = new google.maps.places.Autocomplete(input);
+			autocomplete.bindTo('bounds', map);
+
+			infowindow = new google.maps.InfoWindow();
+			userMarker = new google.maps.Marker({
+				map : map,
+				draggable : true,
+				anchorPoint : new google.maps.Point(0, -29)
+			});
+
+			autocomplete
+					.addListener(
+							'place_changed',
+							function() {
+								infowindow.close();
+								userMarker.setVisible(false);
+								var place = autocomplete.getPlace();
+								if (!place.geometry) {
+									window
+											.alert("Autocomplete's returned place contains no geometry");
+									return;
+								}
+
+								// If the place has a geometry, then present it on a map.
+								if (place.geometry.viewport) {
+									map.fitBounds(place.geometry.viewport);
+								} else {
+									map.setCenter(place.geometry.location);
+									map.setZoom(18);
+								}
+								userMarker.setIcon(/** @type {google.maps.Icon} */
+								({
+									url : place.icon,
+									size : new google.maps.Size(71, 71),
+									origin : new google.maps.Point(0, 0),
+									anchor : new google.maps.Point(17, 34),
+									scaledSize : new google.maps.Size(35, 35)
+								}));
+								userMarker.setPosition(place.geometry.location);
+								userMarker.setVisible(true);
+
+								var address = '';
+								if (place.address_components) {
+									address = [
+											(place.address_components[0]
+													&& place.address_components[0].short_name || ''),
+											(place.address_components[1]
+													&& place.address_components[1].short_name || ''),
+											(place.address_components[2]
+													&& place.address_components[2].short_name || '') ]
+											.join(' ');
+								}
+
+								infowindow.setContent('<div><strong>'
+										+ place.name + '</strong><br>'
+										+ 'You are here');
+								infowindow.open(map, userMarker);
+								document.getElementById('latitude').value = userMarker.position.lat().toFixed(5);
+								document.getElementById('longitude').value = userMarker.position.lng().toFixed(5);
+							});
+			google.maps.event
+					.addListener(
+							userMarker,
+							'dragend',
+							function(evt) {
+								document.getElementById('latitude').value = evt.latLng.lat().toFixed(5);
+								document.getElementById('longitude').value = evt.latLng.lng().toFixed(5);
+							});
+		}
+
+		function getLocation() {
+			if (navigator.geolocation) {
+				navigator.geolocation.getCurrentPosition(showPosition);
+			} else {
+			}
+		}
+		function showPosition(position) {
+			var center = new google.maps.LatLng(position.coords.latitude,
+					position.coords.longitude);
+			map.panTo(center);
+			map.setZoom(18);
+			userMarker.setPosition(center);
+			document.getElementById('latitude').value = userMarker.position.lat().toFixed(5);
+			document.getElementById('longitude').value = userMarker.position.lng().toFixed(5);
+		}
+		// ]]>
+	</script>
+
+	<script src="js/jquery-1.12.3.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/custom.js"></script>
+	<script
+		src="https://maps.googleapis.com/maps/api/js?key=AIzaSyByK8yuemeyVGlRA88G9ViznA_cJIZojtc&amp;libraries=places&amp;callback=initMap"
+		async="async" defer="defer"></script>
+</body>
+</html>
