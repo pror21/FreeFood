@@ -24,6 +24,9 @@ public class Account {
 	private double longitude;
 	private Set<String> roles = new HashSet<String>();
 	
+	public void addRole(String role) {
+        roles.add(role);
+    }
 	public String getId() {
 		return id;
 	}
