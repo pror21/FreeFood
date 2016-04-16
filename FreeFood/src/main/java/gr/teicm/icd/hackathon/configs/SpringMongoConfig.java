@@ -13,6 +13,6 @@ public class SpringMongoConfig {
 
 		MongoTemplate mongoTemplate = new MongoTemplate(new MongoClient("127.0.0.1"), "freefood");
 		return mongoTemplate;
-
+		
 	}
 }
