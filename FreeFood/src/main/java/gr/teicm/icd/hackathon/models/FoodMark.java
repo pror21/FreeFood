@@ -1,5 +1,7 @@
 package gr.teicm.icd.hackathon.models;
 
+import java.util.Date;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -16,7 +18,28 @@ public class FoodMark {
 	private String food;
 	private String info;
 	private Time time;
-	
+	private Date dateTime;
+	private double latitude;
+	private double longitude;
+
+	public Date getDateTime() {
+		return dateTime;
+	}
+	public void setDateTime(Date dateTime) {
+		this.dateTime = dateTime;
+	}
+	public double getLatitude() {
+		return latitude;
+	}
+	public void setLatitude(double latitude) {
+		this.latitude = latitude;
+	}
+	public double getLongitude() {
+		return longitude;
+	}
+	public void setLongitude(double longitude) {
+		this.longitude = longitude;
+	}
 	public String getId() {
 		return id;
 	}
@@ -47,5 +70,4 @@ public class FoodMark {
 	public void setTime(Time time) {
 		this.time = time;
 	}
-	
 }
