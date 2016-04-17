@@ -1,5 +1,6 @@
 package gr.teicm.icd.hackathon.services;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -25,7 +26,7 @@ public class FoodMarkService {
 	private FoodMarkRepository foodMarkRepository;
 	
 	@Autowired
-	private AccountRepository repository;
+	private AccountRepository accountRepository;
 
 	@Autowired
 	private SimpMessagingTemplate template;
@@ -37,10 +38,11 @@ public class FoodMarkService {
 	public boolean insertFoodMark(FoodMark foodmark) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Account account = new Account();
-		account = repository.findByUsername(auth.getName());
-
-		if(foodMarkRepository.findByAcc(account) == null) { 
-			foodmark.setAcc(account);
+		account = accountRepository.findByUsername(auth.getName());
+		foodmark.setAcc(account);
+		foodmark.getAcc().setPassword(null);
+		foodmark.setDateTime(new Date());
+		if(foodMarkRepository.findByAccId(account.getId()) == null) { 
 			foodMarkRepository.insert(foodmark);
 			this.template.convertAndSend("/markers", foodmark);
 			assignScheduler(foodmark);
@@ -55,7 +57,7 @@ public class FoodMarkService {
 		TimerTask timerTask = new FoodMarkScheduler(this, foodmark);
 		switch (foodmark.getTime()) {
 		case S1:
-			timer.schedule(timerTask, 10000);
+			timer.schedule(timerTask, 30000);
 			break;
 		case H1:
 			timer.schedule(timerTask, TimeUnit.HOURS.toMillis(1));
@@ -101,5 +103,16 @@ public class FoodMarkService {
 	
 	public List<FoodMark> getAllFoodMarks() {
 		return foodMarkRepository.findAll();
+	}
+	
+	public void updateFoodMarkListing(FoodMark foodmark) {
+		FoodMark fm = foodMarkRepository.findOne(foodmark.getId());
+		fm.setLatitude(foodmark.getLatitude());
+		fm.setLongitude(foodmark.getLongitude());
+		fm.setDateTime(new Date());
+		fm.setFood(foodmark.getFood());
+		fm.setInfo(foodmark.getInfo());
+		fm.setTime(foodmark.getTime());
+		foodMarkRepository.save(fm);
 	}
 }
