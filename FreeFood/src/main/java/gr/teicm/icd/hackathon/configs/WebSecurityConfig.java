@@ -20,7 +20,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		http.authorizeRequests()
 		.antMatchers("/", "/register", "/registerDone",
-						"/registerFailed", "/css/**", "/js/**", "/img/**", "/fragments/**")
+						"/registerFailed", "/css/**", "/js/**", "/img/**", "/fragments/**", "/markers/**", "/removeMarker/**")
 				.permitAll().anyRequest().authenticated().and()
 				.formLogin().loginPage("/login").permitAll().and().logout()
 				.logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
