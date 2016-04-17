@@ -9,25 +9,50 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <link rel="stylesheet" href="css/bootstrap.css" media="screen" />
 <link rel="stylesheet" href="css/custom.css" />
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css" />
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css" />
 <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
 <!--[if lt IE 9]>
       <script src="../bower_components/html5shiv/dist/html5shiv.js"></script>
       <script src="../bower_components/respond/dest/respond.min.js"></script>
     <![endif]-->
-<script src="js/sockjs-0.3.4.js"></script>
-<script src="js/stomp.js"></script>
+<script src="js/jquery-1.12.3.min.js"></script>
+<script src="//cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <style>
 #map {
 	width: 100%;
 	height: 100%;
 }
+
+.gm-style .gm-style-iw {
+	font-size: 13px;
+	overflow: hidden;
+}
 </style>
+<script type="text/javascript">
+	var stompClient = null;
+	var markers = [];
+	function connect() {
+		var socket = new SockJS('/markers');
+		stompClient = Stomp.over(socket);
+		stompClient.connect({}, function(frame) {
+			console.log('Connected: ' + frame);
+			stompClient.subscribe('/markers', function(foodmark, isUpdate) {
+				insertFoodMarker(foodmark, true);
+			});
+			stompClient.subscribe('/removeMarker', function(id) {
+				removeFoodMarker(id.body);
+			});
+		});
+	}
+</script>
+
 </head>
-<body>
+<body onload="connect()">
 	<div th:replace="fragments/header"></div>
 	<div class="container">
-		<br /> <br />
+		<br/><br/>
 		<div class="jumbotron">
 			<div id="map">
 				<i class="fa fa-circle-o-notch fa-spin fa-5x"></i>
@@ -36,7 +61,340 @@
 		<div th:replace="fragments/footer"></div>
 	</div>
 
-	<script src="js/jquery-1.12.3.min.js"></script>
+	<script th:inline="javascript">
+		//<![CDATA[
+		var directionsDisplay;
+		var directionsService;
+		var map;
+		var userMarker;
+	    var allFoodMarks = [[${allFoodMarks}]];
+	    //var image = '../img/RedWhiteMarker.png';
+	    var image = '../img/FreeFoodMarker.png';
+	    var infowindow;
+	    
+		function initMap() {
+			map = new google.maps.Map(document.getElementById('map'), {
+				center : new google.maps.LatLng(0, 0),
+				zoom : 2,
+				styles : [ {
+					"featureType" : "water",
+					"stylers" : [ {
+						"visibility" : "on"
+					}, {
+						"color" : "#b5cbe4"
+					} ]
+				}, {
+					"featureType" : "landscape",
+					"stylers" : [ {
+						"color" : "#efefef"
+					} ]
+				}, {
+					"featureType" : "road.highway",
+					"elementType" : "geometry",
+					"stylers" : [ {
+						"color" : "#83a5b0"
+					} ]
+				}, {
+					"featureType" : "road.arterial",
+					"elementType" : "geometry",
+					"stylers" : [ {
+						"color" : "#bdcdd3"
+					} ]
+				}, {
+					"featureType" : "road.local",
+					"elementType" : "geometry",
+					"stylers" : [ {
+						"color" : "#ffffff"
+					} ]
+				}, {
+					"featureType" : "poi.park",
+					"elementType" : "geometry",
+					"stylers" : [ {
+						"color" : "#e3eed3"
+					} ]
+				}, {
+					"featureType" : "administrative",
+					"stylers" : [ {
+						"visibility" : "on"
+					}, {
+						"lightness" : 33
+					} ]
+				}, {
+					"featureType" : "road"
+				}, {
+					"featureType" : "poi.park",
+					"elementType" : "labels",
+					"stylers" : [ {
+						"visibility" : "on"
+					}, {
+						"lightness" : 20
+					} ]
+				}, {}, {
+					"featureType" : "road",
+					"stylers" : [ {
+						"lightness" : 20
+					} ]
+				} ]
+
+			});
+			directionsDisplay = new google.maps.DirectionsRenderer;
+			directionsService = new google.maps.DirectionsService;
+			directionsDisplay.setMap(map);
+
+		    drop(allFoodMarks);
+		    
+			var input = /** @type {!HTMLInputElement} */
+			(document.getElementById('pac-input'));
+
+			var autocomplete = new google.maps.places.Autocomplete(input);
+			autocomplete.bindTo('bounds', map);
+
+			infowindow = new google.maps.InfoWindow;
+			userMarker = new google.maps.Marker({
+				map : map,
+				anchorPoint : new google.maps.Point(0, -29)
+			});
+
+			autocomplete
+					.addListener(
+							'place_changed',
+							function() {
+								infowindow.close();
+								userMarker.setVisible(false);
+								var place = autocomplete.getPlace();
+								if (!place.geometry) {
+									window
+											.alert("Autocomplete's returned place contains no geometry");
+									return;
+								}
+
+								// If the place has a geometry, then present it on a map.
+								if (place.geometry.viewport) {
+									map.fitBounds(place.geometry.viewport);
+								} else {
+									map.setCenter(place.geometry.location);
+									map.setZoom(17); // Why 17? Because it looks good.
+								}
+								userMarker.setIcon(/** @type {google.maps.Icon} */
+								({
+									url : place.icon,
+									size : new google.maps.Size(71, 71),
+									origin : new google.maps.Point(0, 0),
+									anchor : new google.maps.Point(17, 34),
+									scaledSize : new google.maps.Size(35, 35)
+								}));
+								userMarker.setPosition(place.geometry.location);
+								userMarker.setVisible(true);
+
+								var address = '';
+								if (place.address_components) {
+									address = [
+											(place.address_components[0]
+													&& place.address_components[0].short_name || ''),
+											(place.address_components[1]
+													&& place.address_components[1].short_name || ''),
+											(place.address_components[2]
+													&& place.address_components[2].short_name || '') ]
+											.join(' ');
+								}
+								infowindow.setContent('You are here!');
+								infowindow.open(map, userMarker);
+							});
+		}
+
+	    function drop(allFoodMarks) {
+	    	var jsonFoodMark;
+	    	  for (var i = 0; i < allFoodMarks.length; i++) {
+	    		  insertFoodMarker(allFoodMarks[i], false, i * 600);
+	    	  }
+	    	}
+
+		function getLocation() {
+			if (navigator.geolocation) {
+				navigator.geolocation.getCurrentPosition(showPosition);
+			}
+		}
+		function showPosition(position) {
+			var center = new google.maps.LatLng(position.coords.latitude,
+				position.coords.longitude);
+				map.panTo(center);
+				map.setZoom(13);
+				userMarker.setPosition(center);
+		}
+
+		function insertFoodMarker(foodmark, isUpdate, timeout) {
+			window.setTimeout(function() {
+
+			if(isUpdate == true) {
+				var json = JSON.parse(foodmark.body);
+			}
+			else if (isUpdate == false) {
+				var json = foodmark;
+			}
+			//Contributer Info
+			var usernameMark = json["acc"].username;
+			var nameMark = json["acc"].name;
+			var aboutMark = json["acc"].about;
+			var typeMark = json["acc"].type.$name;
+			var latMark = parseFloat(json["latitude"]);
+			var lngMark = parseFloat(json["longitude"]);
+			//Food Info
+			var idMark = json["id"];
+			var foodMark = json["food"];
+			var infoMark = json["info"];
+			var dateTimeMark = json["dateTime"];
+			var timeMark = json["time"].$name;
+			//Human Readable Type:
+			var typeH;
+			switch(typeMark) {
+				case 'INDIVIDUAL': typeH = '<i class="fa fa-user" aria-hidden="true"></i> ' + 'Individual'; break;
+				case 'STORE': typeH = '<i class="fa fa-cutlery" aria-hidden="true"></i> ' + 'Food Store/Restaurant'; break;
+				case 'FOUNDATION': typeH = '<i class="fa fa-life-ring" aria-hidden="true"></i> ' + 'Foundation'; break;
+				case 'OTHER': typeH = '<i class="fa fa-building-o" aria-hidden="true"></i> ' + 'Other Organization'; break;
+			}
+			//Time Available to Milliseconds:
+			var timeH = null;
+			switch(timeMark) {
+				case 'S1' : timeH = 30000; break;
+				case 'H1' : timeH = 3600000; break;
+				case 'H2' : timeH = 7200000; break;
+				case 'H3' : timeH = 10800000; break;
+				case 'H4' : timeH = 14400000; break;
+				case 'H5' : timeH = 18000000; break;
+				case 'D1' : timeH = 86400000; break;
+				case 'D2' : timeH = 172800000; break;
+				case 'D3' : timeH = 259200000; break;
+				case 'D4' : timeH = 345600000; break;
+				case 'D5' : timeH = 432000000; break;
+				case 'PERMANENT' : timeH = 'Permanent'; break;
+				case 'PERMAPPL' : timeH = 'Permanent (Uncertain Availability)'; break;
+			}
+			
+			var marker = new google.maps.Marker({
+				icon: image,
+				map : map,
+				title : "title",
+				clickable : true,
+				draggable : false,
+				animation : google.maps.Animation.DROP,
+				position : {
+					lat : latMark,
+					lng : lngMark
+				},
+				id : idMark,
+				food : foodMark,
+				info : infoMark,
+				datetime : dateTimeMark,
+				time : timeMark,
+				username : usernameMark,
+				name : nameMark,
+				about : aboutMark,
+				type : typeMark
+			});
+			marker.addListener('click', function() {
+			    map.setZoom(16);
+			    map.setCenter(marker.getPosition());
+			  });
+			infowindow = new google.maps.InfoWindow;
+		    google.maps.event.addListener(marker, 'click', function(){
+		    	$("div").remove("#countdown");
+		    	infowindow.close();
+		    	  // InfoWindow content
+		    	  var content = 
+		    		  '<ul class="nav nav-tabs">'+
+		    	  	    '<li class="active"><a aria-expanded="true" href="#home" data-toggle="tab">Summary <i class="fa fa-list-alt" aria-hidden="true"></i></a></li>'+
+		    		    '<li class=""><a aria-expanded="false" href="#profile" data-toggle="tab">Profile <i class="fa fa-info" aria-hidden="true"></i></a></li>'+
+		    		    '<li class=""><a aria-expanded="false" href="#contact" data-toggle="tab">Contact <i class="fa fa-envelope-o" aria-hidden="true"></i></a></li>'+
+		    		   '</ul>'+
+		    		  '<div id="myTabContent" class="tab-content">'+
+		    		    '<div class="tab-pane fade active in" id="home">'+
+		    		      '<table class="table table-striped text-left">'+
+				    		    '<tr>'+
+				    		    	'<td><strong>Name:</strong></td>'+
+				    		    	'<td>'+nameMark+'</td>'+
+				    		  	'</tr>'+
+				    		    '<tr>'+
+				    		    	'<td><strong>Food:</strong></td>'+
+				    		    	'<td>'+foodMark+'</td>'+	
+				    		  	'</tr>'+
+				    		    '<tr>'+
+			    		    		'<td><strong>Available for:</strong></td>'+
+			    		    		'<td><div id="countdown"></div></td>'+	
+			    		  		'</tr>'+
+				    		    '<tr>'+
+		    		    			'<td><strong>More Info:</strong></td>'+
+		    		    			'<td>'+infoMark+'</td>'+	
+		    		  			'</tr>'+
+						  '</table>'+
+		    		    '</div>'+
+		    		   '<div class="tab-pane fade" id="profile">'+
+		    		      '<table class="table table-striped text-left">'+
+			    		    '<tr>'+
+			    		    	'<td><strong>Username:</strong></td>'+
+			    		    	'<td>'+usernameMark+'</td>'+
+			    		  	'</tr>'+
+			    		    '<tr>'+
+			    		    	'<td><strong>Type:</strong></td>'+
+			    		    	'<td>'+typeH+'</td>'+	
+			    		  	'</tr>'+
+			    		    '<tr>'+
+		    		    		'<td><strong>About:</strong></td>'+
+		    		    		'<td>'+aboutMark+'</td>'+	
+		    		  		'</tr>'+
+					  	  '</table>'+
+		    		   '</div>'+
+		    		   '<div class="tab-pane fade" id="contact">'+
+		    		     '<p>contact info here</p>'+
+		    		   '</div>'+
+		    		  '</div>'+
+		    		  '<small><em>*Availability is uncertain.</em></small>';
+		        infowindow.setContent(content);
+		        infowindow.open(map, marker);
+		    	startCountDown(dateTimeMark, timeH);
+		    });
+		    google.maps.event.addListener(infowindow,'closeclick',function(){
+	        	$("div").remove("#countdown");
+	    	});
+			markers.push(marker);
+			}, timeout);	
+		}
+
+		function removeFoodMarker(id) {
+			for (var i = 0; i < markers.length; i++) {
+				if (markers[i].id == id) {
+					markers[i].setMap(null);
+					markers.splice(i, 1);
+					return;
+				}
+			}
+		}
+		// ]]>
+	</script>
+	<script>
+	function startCountDown(date, timeH){
+		if(timeH=="Permanent" || timeH=="Permanent (Uncertain Availability)") {
+			var countdown = document.getElementById('countdown');
+			countdown.innerHTML = '<b>'+timeH+'</b>';
+		}
+		else {
+			var target_date = (new Date(date).getTime())+timeH;
+			var days, hours, minutes, seconds;
+			var countdown = document.getElementById('countdown');
+			setInterval(function () {
+			    var current_date = new Date().getTime();
+			    var seconds_left = (target_date - current_date) / 1000;
+			    days = parseInt(seconds_left / 86400);
+			    seconds_left = seconds_left % 86400;
+			    hours = parseInt(seconds_left / 3600);
+			    seconds_left = seconds_left % 3600;
+			    minutes = parseInt(seconds_left / 60);
+			    seconds = parseInt(seconds_left % 60);
+			    countdown.innerHTML = '<span class="days">' + days +  ' <b>Days</b></span> <span class="hours">' + hours + ' <b>Hours</b></span> <span class="minutes">'
+			    + minutes + ' <b>Minutes</b></span> <span class="seconds">' + seconds + ' <b>Seconds</b></span>';  
+			}, 1000);
+		}
+	}
+	</script>
 	<script src="js/bootstrap.min.js"></script>
 	<script src="js/custom.js"></script>
 	<script
